@@ -1,0 +1,23 @@
+{% extends "main/base.html" %}
+
+{% block title %}خانه{% endblock %}
+
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>سفرهای شما</h2>
+        <a href="{% url 'main:create_trip' %}" style="background-color: #28a745; color: white; padding: 8px 12px; text-decoration: none; border-radius: 5px;">+ ایجاد سفر جدید</a>
+    </div>
+
+    {% if trips %}
+        <ul>
+            {% for trip in trips %}
+                <li>
+                    <a href="{% url 'main:trip_detail' trip.id %}">{{ trip.name }}</a>
+                    (سازنده: {{ trip.organizer.username }})
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>شما هنوز در هیچ سفری شرکت نکرده‌اید. یک <a href="{% url 'main:create_trip' %}">سفر جدید بسازید</a>!</p>
+    {% endif %}
+{% endblock %}

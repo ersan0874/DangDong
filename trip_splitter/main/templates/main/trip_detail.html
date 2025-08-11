@@ -1,0 +1,115 @@
+{% extends "main/base.html" %}
+
+{% block title %}{{ trip.name }}{% endblock %}
+
+{% block content %}
+    <style>
+        .grid-container { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .expense-list li, .summary-list li { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .expense-list li:last-child, .summary-list li:last-child { border-bottom: none; }
+        .balance-positive { color: green; }
+        .balance-negative { color: red; }
+    </style>
+
+    <h2>{{ trip.name }}</h2>
+    <p>{{ trip.description|linebreaks }}</p>
+    <small>سازنده: {{ trip.organizer.username }}</small>
+    <hr>
+
+    <div class="grid-container">
+        <div class="main-content">
+            <!-- Expenses Section -->
+            <div class="card">
+                <h3>هزینه‌ها (مجموع: {{ total_cost|floatformat:2 }} تومان)</h3>
+                <ul class="expense-list">
+                    {% for expense in expenses %}
+                        <li>
+                            <span>{{ expense.description }} ({{ expense.get_category_display }}) - پرداخت توسط: {{ expense.paid_by.username }}</span>
+                            <strong>{{ expense.amount|floatformat:2 }} تومان</strong>
+                        </li>
+                    {% empty %}
+                        <li>هنوز هیچ هزینه‌ای ثبت نشده است.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Add Expense Form -->
+            <div class="card">
+                <h3>افزودن هزینه جدید</h3>
+                <form action="{% url 'main:add_expense' trip.id %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ expense_form.as_p }}
+                    <button type="submit">افزودن هزینه</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <!-- Participants Section -->
+            <div class="card">
+                <h3>شرکت‌کنندگان</h3>
+                <ul>
+                    {% for participant in trip.participants.all %}
+                        <li>{{ participant.username }}</li>
+                    {% endfor %}
+                </ul>
+                {% if user == trip.organizer %}
+                    <hr>
+                    <h4>افزودن شرکت‌کننده</h4>
+                    <form action="{% url 'main:add_participant' trip.id %}" method="post">
+                        {% csrf_token %}
+                        {{ add_participant_form.as_p }}
+                        <button type="submit">افزودن</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="card">
+                <h3>خلاصه وضعیت مالی</h3>
+                <h4>موجودی نهایی</h4>
+                <ul class="summary-list">
+                    {% for user, balance in balances %}
+                        <li>
+                            <span>{{ user.username }}:</span>
+                            <strong class="{% if balance > 0 %}balance-positive{% else %}balance-negative{% endif %}">
+                                {{ balance|floatformat:2 }} تومان
+                            </strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <hr>
+                <h4>تراکنش‌های مورد نیاز برای تسویه</h4>
+                <ul class="summary-list">
+                    {% for tx in transactions %}
+                        <li>
+                           <span><strong>{{ tx.from.username }}</strong> به <strong>{{ tx.to.username }}</strong></span>
+                           <strong>{{ tx.amount|floatformat:2 }} تومان</strong>
+                        </li>
+                    {% empty %}
+                        <li>تمام حساب‌ها تسویه است.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Category Statistics -->
+            <div class="card">
+                <h3>آمار هزینه‌ها</h3>
+                <ul class="summary-list">
+                    {% for category, total in category_summary %}
+                        <li>
+                            <span>{{ category }}:</span>
+                            <strong>{{ total|floatformat:2 }} تومان</strong>
+                        </li>
+                    {% empty %}
+                        <li>آماری برای نمایش وجود ندارد.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <hr>
+    <a href="{% url 'main:home' %}">بازگشت به لیست سفرها</a>
+{% endblock %}

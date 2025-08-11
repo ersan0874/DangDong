@@ -1,0 +1,13 @@
+{% extends "main/base.html" %}
+
+{% block title %}ثبت‌نام{% endblock %}
+
+{% block content %}
+    <h2>ثبت‌نام</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">ثبت‌نام</button>
+    </form>
+    <p>قبلاً ثبت‌نام کرده‌اید؟ <a href="{% url 'main:login' %}">وارد شوید</a>.</p>
+{% endblock %}
